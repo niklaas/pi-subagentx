@@ -1,0 +1,21 @@
+{
+  "name": "pi-subagentx",
+  "version": "0.1.0",
+  "description": "Sandbox-by-default subagent extension for pi",
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-agent-core": "*",
+    "@mariozechner/pi-tui": "*",
+    "@mariozechner/pi-ai": "*",
+    "@sinclair/typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "extensions/subagent"
+    ]
+  }
+}

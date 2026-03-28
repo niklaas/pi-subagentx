@@ -1,0 +1,60 @@
+name: Track upstream subagent extension
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Weekly on Monday 9:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream files
+        run: |
+          BASE_URL="https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/examples/extensions/subagent"
+          mkdir -p /tmp/upstream
+          curl -sfL "$BASE_URL/index.ts" -o /tmp/upstream/index.ts
+          curl -sfL "$BASE_URL/agents.ts" -o /tmp/upstream/agents.ts
+
+      - name: Merge upstream changes
+        id: merge
+        run: |
+          conflicts=false
+          for file in index.ts agents.ts; do
+            git merge-file \
+              "extensions/subagent/$file" \
+              "extensions/subagent/${file}.upstream" \
+              "/tmp/upstream/$file" \
+              || conflicts=true
+            cp "/tmp/upstream/$file" "extensions/subagent/${file}.upstream"
+          done
+          echo "conflicts=$conflicts" >> "$GITHUB_OUTPUT"
+
+      - name: Build PR body
+        run: |
+          {
+            if [ "${{ steps.merge.outputs.conflicts }}" = "true" ]; then
+              echo "> [!WARNING]"
+              echo "> Conflicts detected"
+              echo ""
+            fi
+            echo "Upstream subagent extension in [\`badlogic/pi-mono\`](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions/subagent) has changed."
+            echo ""
+            echo "Upstream changes have been merged into our modified files via \`git merge-file\`. Review the diff for correctness."
+          } > /tmp/pr-body.md
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: upstream-sync/subagent
+          delete-branch: true
+          title: "chore: sync upstream subagent extension"
+          body-path: /tmp/pr-body.md
+          commit-message: "chore: sync upstream subagent extension"
+          labels: upstream-sync

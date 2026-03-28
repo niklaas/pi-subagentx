@@ -262,16 +262,8 @@ async function runSingleAgent(
 	}
 
 	const args: string[] = ["--mode", "json", "-p", "--no-session"];
-	if (agent.sandbox) {
-		args.push("--no-tools", "--no-extensions", "--no-skills", "--no-prompt-templates");
-		if (agent.tools && agent.tools.length > 0) args.push("--tools", agent.tools.join(","));
-		if (agent.extensions) {
-			for (const ext of agent.extensions) args.push("-e", ext);
-		}
-	} else {
-		if (agent.tools && agent.tools.length > 0) args.push("--tools", agent.tools.join(","));
-	}
 	if (agent.model) args.push("--model", agent.model);
+	if (agent.tools && agent.tools.length > 0) args.push("--tools", agent.tools.join(","));
 
 	let tmpPromptDir: string | null = null;
 	let tmpPromptPath: string | null = null;
